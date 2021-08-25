@@ -19,3 +19,7 @@
         
 * done:来的是最后一个任务，排的是waiting的最后一个
     * T > env.jobs[-1].T_arrival
+    
+## Result
+### 这Reward，惨不忍睹
+![Alt](./微信图片_20210824235325.png)

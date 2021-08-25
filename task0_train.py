@@ -28,11 +28,18 @@ def train(env, agent):
         loop = tqdm(enumerate(env.jobs), total=len(env.jobs))
         for id, job_curr in loop:
             iteration += 1
-            while time.time() - start_time < job_curr.T_arrival:
-                pass
+            while True:
+                T = time.time() - start_time
+                if T >= job_curr.T_arrival:
+                    break
+                for machine in env.machines:
+                    if machine.running:
+                        if machine.running.T_start + machine.running.T_service <= T:
+                            env.jobs[machine.running.id].done = True
+                            machine.add_running(T)
 
             # 冻结时间
-            T = time.time() - start_time
+            # T = time.time() - start_time
             # print(f'job arrived!T:{T}, id:{job_curr.id}, T_arrival:{job_curr.T_arrival}')
 
             # 取出所有机器的waiting队列 + Job
@@ -51,8 +58,18 @@ def train(env, agent):
             reward = 0
             for id_reschedul, job in enumerate(job_reschedul):
                 state = env.get_state(job, T)
+
+                avail_action = []
+                for machine in env.machines:
+                    if machine.service[job.type] <= 5.5:
+                        avail_action.append(machine.id)
+
                 action = agent.choose_action(state)
+                while action not in avail_action:
+                    action = agent.choose_action(state)
+
                 reward = env.step(action, job, T)
+                # print(f'epoch{id}/id{id_reschedul}:{reward}')
                 if id_reschedul < len(job_reschedul) - 1:
                     next_state = env.get_state(job_reschedul[id_reschedul + 1], T)
                 else:
@@ -73,7 +90,7 @@ def train(env, agent):
             loop.set_description(f'Epoch_Train [{i_ep}/{hp.train_eps}]')
             loop.set_postfix({
                 'reward': '{0:1.5f}'.format(reward),
-                'mean_reward': '{0:1.5f}'.format(ep_reward/len(env.jobs))
+                'mean_reward': '{0:1.5f}'.format(ep_reward / len(env.jobs))
             })
 
         if (i_ep + 1) % hp.target_update == 0:
