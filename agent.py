@@ -43,21 +43,28 @@ class DQN:
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=hp.lr)
         self.memory = ReplayBuffer(hp.memory_capacity)
 
-    def choose_action(self, state):
+    def choose_action(self, state, mask):
         '''选择动作
         '''
         self.frame_idx += 1
+        # print(f'action: {self.frame_idx}')
+        # print(f'epsilon:{self.epsilon(self.frame_idx)}')
         if random.random() > self.epsilon(self.frame_idx):
-            action = self.predict(state)
+            action = self.predict(state, mask)
         else:
             action = random.randrange(self.action_dim)
+            while not mask[action]:
+                action = random.randrange(self.action_dim)
         return action
 
-    def predict(self, state):
+    def predict(self, state, mask):
         with torch.no_grad():
             state = torch.tensor([state], device=device, dtype=torch.float32)
+            mask = torch.tensor(mask, device=device, dtype=torch.int32)
             q_values = self.policy_net(state)
-            action = q_values.max(1)[1].item()
+            q_values_softmax = torch.softmax(q_values, dim=1)
+            q_values_softmax = q_values_softmax * mask
+            action = q_values_softmax.max(1)[1].item()
         return action
 
     def update(self):

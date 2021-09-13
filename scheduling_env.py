@@ -1,143 +1,184 @@
 from random import random, uniform, randint
 
+from agent import DQN
+from hparam import hparams as hp
+import numpy as np
+
 
 class job:
     def __init__(self, last_arrival, id):
         self.id = id
         self.T_arrival = last_arrival + uniform(0.5, 1.5)  # 到达时间
-        self.T_service = None  # 耗时
         self.T_deadline = self.T_arrival + uniform(3, 5)  # 截止
         self.type = randint(0, 2)  # 任务类别
+        self.mask = np.ones(hp.action_dim)  # mask
+        self.T_spent = None  # 耗时
         self.T_start = None  # 开始时间
-        self.done = False
-        self.Response_rate = None  # 响应比 = (1 + T拖延)/T给定
+        self.priority = 2  # 优先度
 
     def reset(self):
-        self.T_service = None
+        self.T_spent = None
         self.T_start = None
-        self.Response_rate = None
-
-    def cal_response(self, T):
-        if T > self.T_arrival:
-            delay = T - self.T_arrival
-            given = self.T_deadline - T
-            self.Response_rate = (1 + delay) / given
+        self.priority = 2
 
 
 class machine:
     def __init__(self, id):
         self.id = id
-        self.service = []  # 每个type在这个机器上运行的时间
+        self.spent = []  # list:每个type在这个机器上运行的时间
         self.running = None
-        self.waiting = []
 
-    def add_running(self, T):
+    def reset(self):
         self.running = None
-        if len(self.waiting):
-            self.running = self.waiting.pop(0)  # 取出下一个任务，放到执行中
-            self.running.T_start = T
-
-    def add_waiting(self, job, T):
-        # 记录T_start
-        if self.running:
-            if len(self.waiting):
-                last_job = self.waiting[-1]
-                job.T_start = last_job.T_start + last_job.T_service
-            else:
-                last_job = self.running
-                job.T_start = last_job.T_start + last_job.T_service
-        else:
-            job.T_start = T
-        # 记录T_service
-        job.T_service = self.service[job.type]
-        # 添加进waiting
-        self.waiting.append(job)
 
 
 class SchedulingEnv:
-    def __init__(self, job_num, service_num, type_num):
+    def __init__(self, job_num, machine_num, type_num):
         self.job_num = job_num
-        self.service_num = service_num
-        self.type_num = type_num
-        self.machines = [machine(i) for i in range(self.service_num)]
+        self.machine_num = machine_num  # 机器个数
+        self.type_num = type_num  # 任务type个数
+        self.machines = [machine(i) for i in range(self.machine_num)]
         self.jobs = []
-        self.type2service = []
+        self.waiting = []  # 一个waiting_list
 
-    # 重新随机数据
     def reset(self):
-        self.machines = [machine(i) for i in range(self.service_num)]
-        self.jobs = []
-        self.type2service = []
+        for i in self.jobs:
+            i.reset()
+        for i in self.machines:
+            i.reset()
+        self.waiting = []
 
-        # 随机job
-        self.jobs.append(job(0, 0))
+    def re_random_job(self):
+        # 重新随机job
+        self.jobs = []
+        # 随机第一个job
+        data = job(0, 0)
+        for j in self.machines:
+            if j.spent[data.type] == -1:
+                data.mask[j.id] = 0
+        self.jobs.append(data)
+        # 随机剩余的job
         for i in range(1, self.job_num):
             data = job(self.jobs[-1].T_arrival, i)
+            for j in self.machines:
+                if j.spent[data.type] == -1:
+                    data.mask[j.id] = 0
             self.jobs.append(data)
+
+    # 重新随机数据
+    def init(self):
+        print('Reseting data...')
+        self.machines = [machine(i) for i in range(self.machine_num)]
+        self.jobs = []
+
+        # # 随机每个machine不同type的service时间
+        # re_random = True  # True:要重新随机
+        # while re_random:
+        #     for i in self.machines:
+        #         # 防止一台机器什么任务也做不了
+        #         machine_flag = True
+        #         while machine_flag:
+        #             i.spent = []
+        #             for j in range(self.type_num):
+        #                 if random() > 0.5:  # 随机数判断在这个机器上能不能做该任务
+        #                     i.spent.append(uniform(2.5, 5.5))
+        #                 else:
+        #                     i.spent.append(-1)
+        #             for k in i.spent:
+        #                 if not k == -1:
+        #                     machine_flag = False
+        #         print('machine_id:', i.id, i.spent)
+        #     # 防止一个任务什么机器都做不了
+        #     for ii in range(self.type_num):
+        #         print('我执行了吗')
+        #         pass_id = False
+        #         for jj in self.machines:
+        #             if not jj.spent[ii] == -1:
+        #                 pass_id = True
+        #                 break
+        #         if not pass_id:
+        #             re_random = False
+        #             break
 
         # 随机每个machine不同type的service时间
         for i in self.machines:
-            for j in range(self.service_num):
-                if random() > 0.5:
-                    i.service.append(uniform(2.5, 5.5))
+            i.spent = []
+            for j in range(self.type_num):
+                if random() > 0.5:  # 随机数判断在这个机器上能不能做该任务
+                    i.spent.append(uniform(2.5, 5.5))
                 else:
-                    i.service.append(1000)
-            # print('type:', i.id, i.service)
+                    i.spent.append(-1)
+            print('machine_id:', i.id, i.spent)
+
+        # 随机job
+        # 随机第一个job
+        data = job(0, 0)
+        for j in self.machines:
+            if j.spent[data.type] == -1:
+                data.mask[j.id] = 0
+        self.jobs.append(data)
+        # 随机剩余的job
+        for i in range(1, self.job_num):
+            data = job(self.jobs[-1].T_arrival, i)
+            for j in self.machines:
+                if j.spent[data.type] == -1:
+                    data.mask[j.id] = 0
+            self.jobs.append(data)
 
     def get_state(self, job, T):
-        state = [T,  # 环境时间
-                 job.T_arrival,
-                 # job.T_service,
-                 job.T_deadline,
-                 job.type
+        state = [T - job.T_arrival,  # t_suspended
+                 job.priority,
+                 len(self.waiting)  # list.number
                  ]
+
         for i in self.machines:
+            # t_spent
+            state.append(i.spent[job.type])
+            # t_balance
+            state.append(job.T_deadline - T - i.spent[job.type])
+            # machine_time_let:机器上正在做的任务的剩余时间
             if i.running:
-                t_end_now = i.running.T_start + i.running.T_service  # 当前任务结束时间
+                state.append(i.running.T_start + i.running.T_spent - T)
             else:
-                t_end_now = 0
-            state.append(t_end_now)
-            if len(i.waiting):
-                t_end_last = i.waiting[-1].T_start + i.waiting[-1].T_service  # 最后一个任务结束时间
+                state.append(0)
+            # machine_balance:机器上正在做的任务如果完成了的时间结余
+            if i.running:
+                state.append(i.running.T_deadline - T - i.spent[i.running.type])
             else:
-                t_end_last = 0
-            state.append(t_end_last)
+                state.append(0)
+
         return state
 
     def step(self, action, job, T):
-        # 添加进对应的machine.waiting
-        self.machines[action].add_waiting(job, T)
-
-        # 刷新机器，如果必要
-        for i in self.machines:
-            # running有任务且完成
-            if i.running and i.running.T_start + i.running.T_service <= T:
-                self.jobs[i.running.id].done = True
-                i.add_running(T)
-            # running压根没任务
-            if i.running is None:
-                i.add_running(T)
-
-        # 计算reward，超时-1，未超时+1
-        # 分类计算，done，running，waiting
         reward = 0
-        for i in self.jobs:
-            if i.done:
-                reward += self.cal_tardiness(i)
-        for i in self.machines:
-            if i.running:
-                reward += self.cal_tardiness(i.running)
-            if len(i.waiting):
-                for j in i.waiting:
-                    reward += self.cal_tardiness(j)
+        feasible = True
 
-        return reward
+        # 添加进waiting_list
+        if action >= self.machine_num:
+            job.priority = (action - 5) / (hp.action_dim - self.machine_num - 1)
+            self.waiting.append(job)
+            # reward -= max(0, T - 150)
 
-    def cal_tardiness(self, job):
-        # 计算超时的时间
-        tardiness = job.T_start + job.T_service - job.T_deadline
-        reward = -tardiness if tardiness >= 0 else tardiness
-        return reward
+        else:
+            # 所需执行时间是负数
+            if self.machines[action].spent[job.type] < 0:
+                reward += -0.001
+                feasible = False
+
+            # 机器的剩余任务时间是正
+            if self.machines[action].running:
+                reward += -0.001
+                feasible = False
+
+            # 可行，安排进机器
+            if reward == 0:
+                job.T_start = T
+                job.T_spent = self.machines[action].spent[job.type]
+                self.machines[action].running = job
+                reward = job.T_deadline - T - job.T_spent
+
+        # print(f'reward: {reward}')
+        return reward, feasible
 
 # # For the test
 # machines = [[] for i in range(5)]
