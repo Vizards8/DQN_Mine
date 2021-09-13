@@ -245,6 +245,7 @@ def eval(env, agent):
         job_cur_id = 0  # 定义当前(current)任务序号，不然需要全表扫描
         loop = tqdm(enumerate(np.arange(0, 160, 0.01)), total=16000)
         for id, T in loop:
+            iteration += 1
             # # 提前终止
             # if job_cur_id >= 100 and len(env.waiting) == 0:
             #     break
@@ -335,7 +336,7 @@ if __name__ == "__main__":
     env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     while True:
         env.init()
-        if FIFO(env) > 0:
+        if FIFO(env) > 0 and FIFO(env) < 20:
             break
     train(env, agent)
     os.makedirs(hp.output_dir, exist_ok=True)
