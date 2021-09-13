@@ -65,11 +65,10 @@ class SchedulingEnv:
                     data.mask[j.id] = 0
             self.jobs.append(data)
 
-    # 重新随机数据
+    # 初始化数据
     def init(self):
-        print('Reseting data...')
-        self.machines = [machine(i) for i in range(self.machine_num)]
-        self.jobs = []
+        print('Initializing data...')
+        self.reset()
 
         # # 随机每个machine不同type的service时间
         # re_random = True  # True:要重新随机
@@ -104,13 +103,14 @@ class SchedulingEnv:
         for i in self.machines:
             i.spent = []
             for j in range(self.type_num):
-                if random() > 0.5:  # 随机数判断在这个机器上能不能做该任务
+                if random() > 0.4:  # 随机数判断在这个机器上能不能做该任务
                     i.spent.append(uniform(2.5, 5.5))
                 else:
                     i.spent.append(-1)
             print('machine_id:', i.id, i.spent)
 
         # 随机job
+        self.jobs = []
         # 随机第一个job
         data = job(0, 0)
         for j in self.machines:

@@ -100,6 +100,8 @@ class DQN:
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()  # 更新模型
 
+        return loss.item()
+
     def save(self, path):
         torch.save(self.target_net.state_dict(), path + 'dqn_checkpoint.pth')
 

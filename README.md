@@ -88,14 +88,17 @@ agent(state)
     * 已修改的bug:
         * mask不会出现5个0，以至于无机器可以放
         * 每个epoch开始，reset环境，包括jobs，machines，waiting_list
-        
+* 9.13:
+    * 添加 verify 校验
+    * 添加 tensorboard:
+        * train:loss/ep_reward/last_reward
+        * valid:loss/ep_reward/last_reward
+    * 添加baseline，FIFO，先进先出
+    * 修改随机机制，每个epoch开始随机100个任务，任务花费时间不变
+    * 提前中断：没有新任务，且waiting_list为空，试验过了，不能每一个reward都输出，全是0不合理
+
 
 ## Todo:
-* 校验 reward == tardness
-* 优先级一样，按照什么排？
+* next_state 中的 job 相关是否要置0
+* 优先级一样，按照什么排？暂时id
 * T结束，结算 waiting_list
-* 修改 tensorboard:
-    * train:loss/ep_reward/last_reward
-    * valid:loss/ep_reward/last_reward
-* 添加baseline，FIFO，先进先出
-* 修改随机机制，每个epoch开始随机100个任务，任务花费时间不变
