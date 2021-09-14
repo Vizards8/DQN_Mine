@@ -97,9 +97,12 @@ agent(state)
     * 修改随机机制，每个epoch开始随机100个任务，任务花费时间不变
     * 提前中断：没有新任务，且waiting_list为空，试验过了，不能每一个reward都输出，全是0不合理
     * 整出了一个还行的结果，调整FIFO的值在0-20之间
-
+* 9.14:
+    * bug:running任务直接消失
+    * 最后一个任务mask除机器外的所有action
 
 ## Todo:
 * next_state 中的 job 相关是否要置0
 * 优先级一样，按照什么排？暂时id
 * T结束，结算 waiting_list
+* 每10epoch之后做validation

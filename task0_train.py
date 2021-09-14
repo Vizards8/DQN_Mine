@@ -113,7 +113,7 @@ def train(env, agent):
     # epoch
     for i_ep in range(hp.train_eps):
         env.reset()
-        env.re_random_job()
+        # env.re_random_job()
         ep_reward = 0
         reward_list = [0]
         loss_list = [0]
@@ -124,7 +124,7 @@ def train(env, agent):
         for id, T in loop:
             iteration += 1
             # 提前终止
-            if job_cur_id >= 100 and len(env.waiting) == 0:
+            if job_cur_id >= hp.job_num and len(env.waiting) == 0:
                 break
 
             # 打印用，防止有的loop没有reward
@@ -170,7 +170,7 @@ def train(env, agent):
             for i in env.machines:
                 # 取出完成的任务
                 if i.running:
-                    if (i.running.T_start + i.running.T_spent) >= T:
+                    if T >= (i.running.T_start + i.running.T_spent):
                         i.running = None
 
                 # 取出最优先任务
@@ -186,6 +186,12 @@ def train(env, agent):
                             for machine in env.machines:
                                 if machine.running:
                                     cur_mask[machine.id] = 0
+
+                            # 最后一个优化结算
+                            if job_cur_id >= hp.job_num and env.waiting == []:
+                                for j in range(hp.machine_num, hp.action_dim):
+                                    cur_mask[j] = 0
+
                             action = agent.choose_action(state, cur_mask)
                             reward, feasible = env.step(action, job_prime, T)
                             reward_list.append(reward)
@@ -237,6 +243,7 @@ def eval(env, agent):
     # epoch
     for i_ep in range(hp.eval_eps):
         env.re_random_job()
+        FIFO(env)
         env.reset()
         ep_reward = 0
         reward_list = [0]
@@ -298,6 +305,12 @@ def eval(env, agent):
                             for machine in env.machines:
                                 if machine.running:
                                     cur_mask[machine.id] = 0
+
+                            # 最后一个优化结算
+                            if job_cur_id >= hp.job_num and env.waiting == []:
+                                for j in range(hp.machine_num, hp.action_dim):
+                                    cur_mask[j] = 0
+
                             action = agent.choose_action(state, cur_mask)
                             reward, feasible = env.step(action, job_prime, T)
                             reward_list.append(reward)
@@ -307,7 +320,7 @@ def eval(env, agent):
             writer.add_scalar('valid/Reward', reward_list[-1], iteration)
             loop.set_description(f'Epoch_Valid [{i_ep + 1}/{hp.eval_eps}]')
             loop.set_postfix({
-                'last_reward': '{0:1.5f}'.format(reward),
+                'reward': '{0:1.5f}'.format(reward),
                 'ep_reward': '{0:1.5f}'.format(ep_reward)
             })
 
