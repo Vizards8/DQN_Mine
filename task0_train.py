@@ -189,8 +189,14 @@ def train(env, agent):
 
                             # 最后一个优化结算
                             if job_cur_id >= hp.job_num and env.waiting == []:
-                                for j in range(hp.machine_num, hp.action_dim):
-                                    cur_mask[j] = 0
+                                flag = False
+                                for j in range(hp.machine_num):
+                                    if cur_mask[j] == 1:
+                                        flag = True
+                                        break
+                                if flag:
+                                    for j in range(hp.machine_num, hp.action_dim):
+                                        cur_mask[j] = 0
 
                             action = agent.choose_action(state, cur_mask)
                             reward, feasible = env.step(action, job_prime, T)
@@ -308,8 +314,14 @@ def eval(env, agent):
 
                             # 最后一个优化结算
                             if job_cur_id >= hp.job_num and env.waiting == []:
-                                for j in range(hp.machine_num, hp.action_dim):
-                                    cur_mask[j] = 0
+                                flag = False
+                                for j in range(hp.machine_num):
+                                    if cur_mask[j] == 1:
+                                        flag = True
+                                        break
+                                if flag:
+                                    for j in range(hp.machine_num, hp.action_dim):
+                                        cur_mask[j] = 0
 
                             action = agent.choose_action(state, cur_mask)
                             reward, feasible = env.step(action, job_prime, T)
