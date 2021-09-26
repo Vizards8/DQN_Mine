@@ -152,6 +152,10 @@ def train(env, agent):
 
                     # 有了可行的action，加入经验池
                     next_state = env.get_state(env.jobs[job_cur_id], T)
+                    next_state[0] = 0
+                    next_state[1] = 3
+                    for spent in range(2, 2 + hp.machine_num):
+                        next_state[spent] = -1
                     if job_cur_id >= env.job_num - 1 or T == 159.99:
                         done = True
                     else:
@@ -203,7 +207,11 @@ def train(env, agent):
                             reward_list.append(reward)
                             ep_reward += reward
                         # 有了可行的action，加入经验池
-                        next_state = env.get_state(job_prime, T)
+                        # next_state = env.get_state(env.jobs[job_cur_id], T)
+                        next_state[0] = 0
+                        next_state[1] = 3
+                        for spent in range(2, 2 + hp.machine_num):
+                            next_state[spent] = -1
                         if job_cur_id >= env.job_num:
                             done = True
                         else:
