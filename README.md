@@ -100,9 +100,16 @@ agent(state)
 * 9.14:
     * bug:running任务直接消失
     * 最后一个任务mask除机器外的所有action
+* 9.26:
+    * 修改最后一个优化结算，不会卡住了
+    * 修改next_state:job相关置0
+    
 
 ## Todo:
-* next_state 中的 job 相关是否要置0
+* 记忆池容量输出
+* next_state找到真正的next_state
+* service_time修改
+* reward越负越多
 * 优先级一样，按照什么排？暂时id
 * T结束，结算 waiting_list
 * 每10epoch之后做validation
