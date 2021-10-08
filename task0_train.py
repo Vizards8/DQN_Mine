@@ -125,7 +125,10 @@ def train(env, agent):
             iteration += 1
             # 提前终止
             if job_cur_id >= hp.job_num and len(env.waiting) == 0:
-                break
+                if T >= env.jobs[hp.job_num - 1].T_arrival:
+                    break
+                else:
+                    print('debug')
 
             # 打印用，防止有的loop没有reward
             reward = 0
