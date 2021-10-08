@@ -131,7 +131,7 @@ def train(env, agent):
             reward = 0
 
             # debug用，错误打印
-            if T >= 159.99 and len(env.waiting) > 1:
+            if T >= 1599.99 and len(env.waiting) > 1:
                 print('debug')
 
             # 新任务来了
