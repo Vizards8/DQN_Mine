@@ -5,10 +5,10 @@
 ## Algorithm+
 * State:
     * t_suspended, Project_priority_normalisation_index,list.number,
-    * 任务花费时间：t_spent1, t_spent2, t_spent3, t_spent4, t_spent5,
-    * 如果送进该机器的时间延迟：t_balance1, t_balance2, t_balance3, t_balance4, t_balance5,
-    * 机器剩余时间：machine1_time_left, machine2_time_left,  machine3_time_left, machine4_time_left, machine5_time_left,
-    * 机器上正在做的任务如果完成了的时间延迟：machine1_balance， machine2_balance， machine3_balance， machine4_balance， machine5_balance,
+    * 任务花费时间：t_spent1, t_spent2, t_spent3, t_spent4, t_spent5...t_spent30
+    * 如果送进该机器的时间延迟：t_balance1, t_balance2, t_balance3, t_balance4, t_balance5...t_balance30
+    * 机器剩余时间：machine1_time_left, machine2_time_left,  machine3_time_left, machine4_time_left, machine5_time_left...machine30_time_left
+    * 机器上正在做的任务如果完成了的时间延迟：machine1_balance, machine2_balance, machine3_balance, machine4_balance, machine5_balance...machine30_balance
 * Action: 5 + 45
 ---
 * 时间循环：0,225,0.01
@@ -103,7 +103,8 @@ agent(state)
 * 9.26:
     * 修改最后一个优化结算，不会卡住了
     * 修改next_state:job相关置0
-    
+* 10.07:
+    * 使用老师给的data_v2.xlsx，并且随机1000个job
 
 ## Todo:
 * 记忆池容量输出

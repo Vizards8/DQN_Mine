@@ -69,39 +69,39 @@ def FIFO(env):
     print(f'FIFO_reward:{verify_reward(env)}')
     return verify_reward(env)
 
-    # 错误的FIFO，就拿来作对比吧
-    env.reset()
-    # 计算每个type花费最少时间的机器
-    min_spent = []
-    for i in range(hp.type_num):
-        temp = 100
-        for j in env.machines:
-            if j.spent[i] != -1 and j.spent[i] < temp:
-                temp = j.spent[i]
-                min_id = j.id
-        min_spent.append(min_id)
-    print(f'花费时间最少的机器:{min_spent}')
-
-    # 循环所以任务，因为是先来先服务从前往后顺序扫描即可
-    machine_list = [[] for i in range(hp.machine_num)]
-    for i in env.jobs:
-        id = min_spent[i.type]  # 此任务在这个机器上做花费时间最短
-        if machine_list[id] == []:  # 开始时这个机器为空的
-            machine_list[id].append(i)
-            i.T_start = i.T_arrival
-            i.T_spent = env.machines[id].spent[i.type]
-        else:
-            i.T_spent = env.machines[id].spent[i.type]  # 花费时间不变，仍然在这个机器上做
-            # 查找开始时间，上一个任务的结束时间/此任务到达时间
-            last_job = machine_list[id][-1]
-            if i.T_arrival >= last_job.T_start + last_job.T_spent:
-                i.T_start = i.T_arrival
-            else:
-                i.T_start = last_job.T_start + last_job.T_spent
-            machine_list[id].append(i)
-
-    # 计算总延迟
-    print(f'wrong_FIFO_reward:{verify_reward(env)}')
+    # # 错误的FIFO，就拿来作对比吧
+    # env.reset()
+    # # 计算每个type花费最少时间的机器
+    # min_spent = []
+    # for i in range(hp.type_num):
+    #     temp = 100
+    #     for j in env.machines:
+    #         if j.spent[i] != -1 and j.spent[i] < temp:
+    #             temp = j.spent[i]
+    #             min_id = j.id
+    #     min_spent.append(min_id)
+    # print(f'花费时间最少的机器:{min_spent}')
+    #
+    # # 循环所以任务，因为是先来先服务从前往后顺序扫描即可
+    # machine_list = [[] for i in range(hp.machine_num)]
+    # for i in env.jobs:
+    #     id = min_spent[i.type]  # 此任务在这个机器上做花费时间最短
+    #     if machine_list[id] == []:  # 开始时这个机器为空的
+    #         machine_list[id].append(i)
+    #         i.T_start = i.T_arrival
+    #         i.T_spent = env.machines[id].spent[i.type]
+    #     else:
+    #         i.T_spent = env.machines[id].spent[i.type]  # 花费时间不变，仍然在这个机器上做
+    #         # 查找开始时间，上一个任务的结束时间/此任务到达时间
+    #         last_job = machine_list[id][-1]
+    #         if i.T_arrival >= last_job.T_start + last_job.T_spent:
+    #             i.T_start = i.T_arrival
+    #         else:
+    #             i.T_start = last_job.T_start + last_job.T_spent
+    #         machine_list[id].append(i)
+    #
+    # # 计算总延迟
+    # print(f'wrong_FIFO_reward:{verify_reward(env)}')
 
 
 def train(env, agent):
@@ -120,7 +120,7 @@ def train(env, agent):
 
         # 按照时间循环
         job_cur_id = 0  # 定义当前(current)任务序号，不然需要全表扫描
-        loop = tqdm(enumerate(np.arange(0, 160, 0.01)), total=16000)
+        loop = tqdm(enumerate(np.arange(0, 1600, 0.01)), total=160000)
         for id, T in loop:
             iteration += 1
             # 提前终止
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     while True:
         env.init()
-        if FIFO(env) > 0 and FIFO(env) < 20:
+        if FIFO(env) > 0:
             break
     train(env, agent)
     os.makedirs(hp.output_dir, exist_ok=True)

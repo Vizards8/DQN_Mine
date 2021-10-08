@@ -8,9 +8,9 @@ import numpy as np
 class job:
     def __init__(self, last_arrival, id):
         self.id = id
-        self.T_arrival = last_arrival + uniform(0.5, 1.5)  # 到达时间
+        self.T_arrival = last_arrival + uniform(0, 1)  # 到达时间
         self.T_deadline = self.T_arrival + uniform(3, 5)  # 截止
-        self.type = randint(0, 2)  # 任务类别
+        self.type = randint(0, hp.type_num - 1)  # 任务类别
         self.mask = np.ones(hp.action_dim)  # mask
         self.T_spent = None  # 耗时
         self.T_start = None  # 开始时间
@@ -100,30 +100,51 @@ class SchedulingEnv:
         #             break
 
         # 随机每个machine不同type的service时间
-        for i in self.machines:
-            i.spent = []
-            for j in range(self.type_num):
-                if random() > 0.4:  # 随机数判断在这个机器上能不能做该任务
-                    i.spent.append(uniform(2.5, 5.5))
-                else:
-                    i.spent.append(-1)
-            print('machine_id:', i.id, i.spent)
+        if self.type_num == 10 and self.machine_num == 30:
+            self.machines[0].spent = [-1, -1, -1, -1, -1, 4.1, 1.8, 1.4, 3.4, -1]
+            self.machines[1].spent = [-1, -1, -1, -1, -1, 2.9, -1, 1.6, -1, 3.9]
+            self.machines[2].spent = [-1, 4.8, -1, 3.4, -1, -1, -1, -1, -1, 4.7]
+            self.machines[3].spent = [-1, -1, -1, -1, -1, 1.4, 2.4, 1.0, 1.6, -1]
+            self.machines[4].spent = [1.2, 3.3, -1, -1, 3.1, 2.3, -1, -1, -1, -1]
+            self.machines[5].spent = [4.2, 1.8, -1, -1, 3.3, 1.1, -1, -1, -1, -1]
+            self.machines[6].spent = [4.0, 1.0, -1, -1, 4.6, 4.2, -1, -1, -1, -1]
+            self.machines[7].spent = [4.9, 2.7, 4.2, 2.2, -1, -1, -1, -1, -1, -1]
+            self.machines[8].spent = [-1, -1, -1, -1, -1, 1.5, 4.3, 4.8, 4.9, -1]
+            self.machines[9].spent = [2.6, 4.3, -1, -1, 1.8, 5.0, -1, -1, -1, -1]
+            self.machines[10].spent = [-1, -1, -1, -1, -1, -1, -1, 4.8, 4.1, 3.6]
+            self.machines[11].spent = [-1, -1, -1, -1, -1, 1.8, -1, 2.6, -1, 4.6]
+            self.machines[12].spent = [-1, -1, -1, -1, -1, 2.1, -1, 2.4, -1, 3.7]
+            self.machines[13].spent = [-1, -1, -1, 3.0, -1, 3.7, -1, -1, -1, 2.8]
+            self.machines[14].spent = [-1, 2.2, -1, 3.1, -1, -1, -1, -1, -1, 3.3]
+            self.machines[15].spent = [-1, -1, -1, -1, -1, 4.6, -1, 3.7, -1, 3.2]
+            self.machines[16].spent = [4.5, 1.4, 4.2, 1.5, -1, -1, -1, -1, -1, -1]
+            self.machines[17].spent = [4.8, -1, 1.1, -1, 2.3, -1, -1, -1, -1, -1]
+            self.machines[18].spent = [2.0, 3.0, 2.2, 1.1, -1, -1, -1, -1, -1, -1]
+            self.machines[19].spent = [-1, -1, -1, -1, -1, 2.1, 1.9, 4.3, 3.0, -1]
+            self.machines[20].spent = [-1, -1, -1, -1, -1, -1, -1, 1.9, 3.6, 3.8]
+            self.machines[21].spent = [2.2, -1, 3.3, -1, 3.6, -1, -1, -1, -1, -1]
+            self.machines[22].spent = [-1, -1, -1, 4.3, -1, 4.0, -1, -1, -1, 3.4]
+            self.machines[23].spent = [-1, -1, -1, -1, -1, -1, -1, 2.3, 4.6, 1.2]
+            self.machines[24].spent = [3.9, -1, 1.1, -1, 4.2, -1, -1, -1, -1, -1]
+            self.machines[25].spent = [-1, -1, -1, 2.2, -1, 1.9, -1, -1, -1, 1.8]
+            self.machines[26].spent = [-1, 2.0, -1, 3.8, -1, -1, -1, -1, -1, 1.6]
+            self.machines[27].spent = [-1, -1, -1, -1, -1, -1, -1, 4.4, 2.4, 4.3]
+            self.machines[28].spent = [2.8, -1, 2.4, -1, 1.7, -1, -1, -1, -1, -1]
+            self.machines[29].spent = [2.2, 4.0, 1.3, 4.9, -1, -1, -1, -1, -1, -1]
+            for i in self.machines:
+                print('machine_id:', i.id, i.spent)
+        else:
+            for i in self.machines:
+                i.spent = []
+                for j in range(self.type_num):
+                    if random() > 0.4:  # 随机数判断在这个机器上能不能做该任务
+                        i.spent.append(uniform(2.5, 5.5))
+                    else:
+                        i.spent.append(-1)
+                print('machine_id:', i.id, i.spent)
 
         # 随机job
-        self.jobs = []
-        # 随机第一个job
-        data = job(0, 0)
-        for j in self.machines:
-            if j.spent[data.type] == -1:
-                data.mask[j.id] = 0
-        self.jobs.append(data)
-        # 随机剩余的job
-        for i in range(1, self.job_num):
-            data = job(self.jobs[-1].T_arrival, i)
-            for j in self.machines:
-                if j.spent[data.type] == -1:
-                    data.mask[j.id] = 0
-            self.jobs.append(data)
+        self.re_random_job()
 
     def get_state(self, job, T):
         state = [T - job.T_arrival,  # t_suspended
