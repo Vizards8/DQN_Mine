@@ -370,16 +370,16 @@ def eval(env, agent):
 
 
 if __name__ == "__main__":
-    # train
     agent = DQN()
     env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     while True:
         env.init()
         if FIFO(env) > 0 and FIFO(env) < 2600:
             break
-    # train(env, agent)
-    # os.makedirs(hp.output_dir, exist_ok=True)
-    # agent.save(path=hp.model_path)
+    # train
+    train(env, agent)
+    os.makedirs(hp.output_dir, exist_ok=True)
+    agent.save(path=hp.model_path)
 
     # eval
     agent = DQN()
