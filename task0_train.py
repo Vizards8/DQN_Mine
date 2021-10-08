@@ -372,13 +372,13 @@ if __name__ == "__main__":
     env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     while True:
         env.init()
-        if FIFO(env) > 0:
+        if FIFO(env) > 0 and FIFO(env) < 2600:
             break
     train(env, agent)
     os.makedirs(hp.output_dir, exist_ok=True)
     agent.save(path=hp.model_path)
 
-    eval
+    # eval
     agent = DQN()
     env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     agent.load(path=hp.model_path)
