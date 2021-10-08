@@ -378,8 +378,8 @@ if __name__ == "__main__":
     os.makedirs(hp.output_dir, exist_ok=True)
     agent.save(path=hp.model_path)
 
-    # eval
-    # agent = DQN()
-    # env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
+    eval
+    agent = DQN()
+    env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     agent.load(path=hp.model_path)
     ma_rewards = eval(env, agent)
