@@ -12,7 +12,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 outputdir = hp.output_dir + '/' + time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 os.makedirs(outputdir, exist_ok=True)
-writer = SummaryWriter(outputdir)
+# writer = SummaryWriter(outputdir)
 
 
 # 校验reward
@@ -107,6 +107,7 @@ def FIFO(env):
 def train(env, agent):
     print('Start to train !')
     print(f'Algorithm:{hp.algo}, Using Device:{device}')
+    writer = SummaryWriter(outputdir)
     iteration = 0
 
     FIFO(env)
