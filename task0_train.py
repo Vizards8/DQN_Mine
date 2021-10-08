@@ -267,18 +267,21 @@ def eval(env, agent):
 
         # 按照时间循环
         job_cur_id = 0  # 定义当前(current)任务序号，不然需要全表扫描
-        loop = tqdm(enumerate(np.arange(0, 160, 0.01)), total=16000)
+        loop = tqdm(enumerate(np.arange(0, 1600, 0.01)), total=160000)
         for id, T in loop:
             iteration += 1
-            # # 提前终止
-            # if job_cur_id >= 100 and len(env.waiting) == 0:
-            #     break
+            # 提前终止
+            if job_cur_id >= hp.job_num and len(env.waiting) == 0:
+                if T >= env.jobs[hp.job_num - 1].T_arrival:
+                    break
+                else:
+                    print('debug')
 
             # 打印用，防止有的loop没有reward
             reward = 0
 
             # debug用，错误打印
-            if T >= 159.99 and len(env.waiting) > 1:
+            if T >= 1599.99 and len(env.waiting) > 1:
                 print('debug')
 
             # 新任务来了
@@ -374,12 +377,11 @@ if __name__ == "__main__":
         env.init()
         if FIFO(env) > 0 and FIFO(env) < 2600:
             break
-    train(env, agent)
-    os.makedirs(hp.output_dir, exist_ok=True)
-    agent.save(path=hp.model_path)
+    # train(env, agent)
+    # os.makedirs(hp.output_dir, exist_ok=True)
+    # agent.save(path=hp.model_path)
 
     # eval
     agent = DQN()
-    env = SchedulingEnv(hp.job_num, hp.machine_num, hp.type_num)
     agent.load(path=hp.model_path)
     ma_rewards = eval(env, agent)
