@@ -124,6 +124,7 @@ def train(env, agent):
         loop = tqdm(enumerate(np.arange(0, 1600, 0.01)), total=160000)
         for id, T in loop:
             iteration += 1
+            state = []
             # 提前终止
             if job_cur_id >= hp.job_num and len(env.waiting) == 0:
                 if T >= env.jobs[hp.job_num - 1].T_arrival:
@@ -141,6 +142,17 @@ def train(env, agent):
             # 新任务来了
             if job_cur_id < env.job_num:
                 if T >= env.jobs[job_cur_id].T_arrival:
+
+                    # 延迟更新agent
+                    if state is not []:
+                        if job_cur_id >= env.job_num - 1 or T == 159.99:
+                            done = True
+                        else:
+                            done = False
+                        next_state = env.get_state(env.jobs[job_cur_id], T)
+                        agent.memory.push(state, action, reward, next_state, done)
+                        loss = agent.update()
+
                     state = env.get_state(env.jobs[job_cur_id], T)
                     feasible = False
                     while not feasible:
@@ -166,12 +178,12 @@ def train(env, agent):
                     for spent in range(1, 1 + hp.machine_num):
                         next_state[spent] = 0
 
-                    if job_cur_id >= env.job_num - 1 or T == 159.99:
-                        done = True
-                    else:
-                        done = False
-                    agent.memory.push(state, action, reward, next_state, done)
-                    loss = agent.update()
+                    # if job_cur_id >= env.job_num - 1 or T == 159.99:
+                    #     done = True
+                    # else:
+                    #     done = False
+                    # agent.memory.push(state, action, reward, next_state, done)
+                    # loss = agent.update()
                     if loss is not None:
                         # writer.add_scalar('train/Loss', loss, iteration)
                         loss_list.append(loss)
@@ -191,6 +203,16 @@ def train(env, agent):
                 if not i.running:
                     if len(env.waiting) > 0:
                         job_prime = env.waiting.pop(0)
+
+                        # 延迟更新agent
+                        if job_cur_id >= env.job_num:
+                            done = True
+                        else:
+                            done = False
+                        next_state = env.get_state(job_prime, T)
+                        agent.memory.push(state, action, reward, next_state, done)
+                        loss = agent.update()
+
                         state = env.get_state(job_prime, T)
 
                         feasible = False
@@ -224,16 +246,17 @@ def train(env, agent):
                         for spent in range(2, 2 + hp.machine_num):
                             next_state[spent] = -1
                         """
-                        next_state[0] = 3
-                        for spent in range(1, 1 + hp.machine_num):
-                            next_state[spent] = 0
+                        # next_state[0] = 3
+                        # for spent in range(1, 1 + hp.machine_num):
+                        #     next_state[spent] = 0
 
-                        if job_cur_id >= env.job_num:
-                            done = True
-                        else:
-                            done = False
-                        agent.memory.push(state, action, reward, next_state, done)
-                        loss = agent.update()
+                        # if job_cur_id >= env.job_num:
+                        #     done = True
+                        # else:
+                        #     done = False
+                        # agent.memory.push(state, action, reward, next_state, done)
+                        # loss = agent.update()
+
                         if loss is not None:
                             # writer.add_scalar('train/Loss', loss, iteration)
                             loss_list.append(loss)
