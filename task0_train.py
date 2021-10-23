@@ -217,7 +217,7 @@ def train(env, agent):
                             reward_list.append(reward)
                             ep_reward += reward
                         # 有了可行的action，加入经验池
-                        next_state = env.get_state(env.jobs[job_cur_id], T)
+                        # next_state = env.get_state(env.jobs[job_cur_id], T)
                         """
                         next_state[0] = 0
                         next_state[1] = 3

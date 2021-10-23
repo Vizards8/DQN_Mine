@@ -180,6 +180,7 @@ class SchedulingEnv:
 
         return state
 
+    # feasible 如果没有bug，都是True
     def step(self, action, job, T):
         reward = 0
         feasible = True
