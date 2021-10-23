@@ -105,11 +105,14 @@ agent(state)
     * 修改next_state:job相关置0
 * 10.07:
     * 使用老师给的data_v2.xlsx，并且随机1000个job
+* 10.23:
+    * 去除 t_balance，添加 t_total_balance
+    * 去除 machine_balance
+    * 修改state，测试
 
 ## Todo:
 * 记忆池容量输出
 * next_state找到真正的next_state
-* service_time修改
 * reward越负越多
 * 优先级一样，按照什么排？暂时id
 * T结束，结算 waiting_list

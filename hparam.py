@@ -1,12 +1,12 @@
 class hparams:
     output_dir = './logs'
-    state_dim = 123  # 4*machine_num +3
+    state_dim = 31  # 4*machine_num +3
     action_dim = 75
     job_num = 1000
     machine_num = 30
     type_num = 10
     algo = "DQN"  # name of algo
-    train_eps = 50  # max trainng episodes #100
+    train_eps = 20  # max trainng episodes #100
     eval_eps = 10  # number of episodes for evaluating
     gamma = 0.95
     epsilon_start = 0.90  # start epsilon of e-greedy policy

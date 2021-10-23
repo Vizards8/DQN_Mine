@@ -147,26 +147,36 @@ class SchedulingEnv:
         self.re_random_job()
 
     def get_state(self, job, T):
-        state = [T - job.T_arrival,  # t_suspended
-                 job.priority,
-                 len(self.waiting)  # list.number
-                 ]
+        # state = [T - job.T_arrival,  # t_suspended
+        #          job.priority,
+        #          len(self.waiting)  # list.number
+        #          ]
+        state = [job.priority]
 
         for i in self.machines:
             # t_spent
-            state.append(i.spent[job.type])
+            # state.append(i.spent[job.type])
+
             # t_balance
-            state.append(job.T_deadline - T - i.spent[job.type])
+            # state.append(job.T_deadline - T - i.spent[job.type])
+
+            # t_total_balance
+            if i.running:
+                state.append(job.T_deadline - i.spent[job.type] - i.running.T_start - i.running.T_spent)
+            else:
+                state.append(job.T_deadline - T - i.spent[job.type])
+
             # machine_time_let:机器上正在做的任务的剩余时间
-            if i.running:
-                state.append(i.running.T_start + i.running.T_spent - T)
-            else:
-                state.append(0)
+            # if i.running:
+            #     state.append(i.running.T_start + i.running.T_spent - T)
+            # else:
+            #     state.append(0)
+
             # machine_balance:机器上正在做的任务如果完成了的时间结余
-            if i.running:
-                state.append(i.running.T_deadline - T - i.spent[i.running.type])
-            else:
-                state.append(0)
+            # if i.running:
+            #     state.append(i.running.T_deadline - T - i.spent[i.running.type])
+            # else:
+            #     state.append(0)
 
         return state
 
