@@ -364,7 +364,7 @@ def eval(env, agent):
             for i in env.machines:
                 # 取出完成的任务
                 if i.running:
-                    if (i.running.T_start + i.running.T_spent) >= T:
+                    if T >= (i.running.T_start + i.running.T_spent):
                         i.running = None
 
                 # 取出最优先任务
@@ -433,10 +433,10 @@ if __name__ == "__main__":
         env.init()
         if FIFO(env) > 0 and FIFO(env) < 2600:
             break
-    # train
-    train(env, agent)
-    os.makedirs(hp.output_dir, exist_ok=True)
-    agent.save(path=hp.model_path)
+    # # train
+    # train(env, agent)
+    # os.makedirs(hp.output_dir, exist_ok=True)
+    # agent.save(path=hp.model_path)
 
     # eval
     agent = DQN()
