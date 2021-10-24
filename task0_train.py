@@ -22,7 +22,7 @@ os.makedirs(outputdir, exist_ok=True)
 def verify_reward(env):
     reward = 0
     for i in env.jobs:
-        if not i.T_start:
+        if i.T_start is None:
             print(f'oops:job_id:{i.id} not start!')  # T_start未赋值，则打印错误
         elif i.T_start >= i.T_arrival and i.T_spent > 0:
             reward += i.T_deadline - i.T_start - i.T_spent
