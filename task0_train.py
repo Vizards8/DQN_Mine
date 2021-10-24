@@ -7,11 +7,14 @@ import operator
 from tqdm import tqdm
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+import pandas as pd
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 outputdir = hp.output_dir + '/' + time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 os.makedirs(outputdir, exist_ok=True)
+
+
 # writer = SummaryWriter(outputdir)
 
 
@@ -53,6 +56,7 @@ def FIFO(env):
 
         # 决定在哪台机器上做
         id = min_spent.index(min(min_spent))
+        i.action = id
         if machine_list[id] == []:
             i.T_start = i.T_arrival
             i.T_spent = env.machines[id].spent[i.type]
@@ -104,6 +108,17 @@ def FIFO(env):
     # print(f'wrong_FIFO_reward:{verify_reward(env)}')
 
 
+def save_job(env, name):
+    os.makedirs(hp.savejob_path, exist_ok=True)
+    dir = os.path.join(hp.savejob_path, name + '.csv')
+    job_list = []
+    for job in env.jobs:
+        job_list.append([job.T_arrival, job.T_deadline, job.type, job.action, job.T_spent, job.T_start])
+    job_list = pd.DataFrame(job_list,
+                            columns=(['T_arrival', 'T_deadline', 'type', 'action', 'T_spent', 'T_start']))
+    job_list.to_csv(dir)
+
+
 def train(env, agent):
     print('Start to train !')
     print(f'Algorithm:{hp.algo}, Using Device:{device}')
@@ -118,13 +133,13 @@ def train(env, agent):
         ep_reward = 0
         reward_list = [0]
         loss_list = [0]
+        state = []
 
         # 按照时间循环
         job_cur_id = 0  # 定义当前(current)任务序号，不然需要全表扫描
-        loop = tqdm(enumerate(np.arange(0, 1600, 0.01)), total=160000)
+        loop = tqdm(enumerate(np.arange(0, hp.job_num * 1.5, 0.01)), total=hp.job_num * 150)
         for id, T in loop:
             iteration += 1
-            state = []
             # 提前终止
             if job_cur_id >= hp.job_num and len(env.waiting) == 0:
                 if T >= env.jobs[hp.job_num - 1].T_arrival:
@@ -143,15 +158,14 @@ def train(env, agent):
             if job_cur_id < env.job_num:
                 if T >= env.jobs[job_cur_id].T_arrival:
 
-                    # 延迟更新agent
-                    if state is not []:
-                        if job_cur_id >= env.job_num - 1 or T == 159.99:
-                            done = True
-                        else:
-                            done = False
-                        next_state = env.get_state(env.jobs[job_cur_id], T)
-                        agent.memory.push(state, action, reward, next_state, done)
-                        loss = agent.update()
+                    # # 延迟更新agent
+                    # if state != []:
+                    #     next_state = env.get_state(env.jobs[job_cur_id], T)
+                    #     agent.memory.push(state, action, reward, next_state, done)
+                    #     loss = agent.update()
+                    #     if loss is not None:
+                    #         # writer.add_scalar('train/Loss', loss, iteration)
+                    #         loss_list.append(loss)
 
                     state = env.get_state(env.jobs[job_cur_id], T)
                     feasible = False
@@ -178,12 +192,12 @@ def train(env, agent):
                     for spent in range(1, 1 + hp.machine_num):
                         next_state[spent] = 0
 
-                    # if job_cur_id >= env.job_num - 1 or T == 159.99:
-                    #     done = True
-                    # else:
-                    #     done = False
-                    # agent.memory.push(state, action, reward, next_state, done)
-                    # loss = agent.update()
+                    if job_cur_id >= env.job_num - 1 or T == 159.99:
+                        done = True
+                    else:
+                        done = False
+                    agent.memory.push(state, action, reward, next_state, done)
+                    loss = agent.update()
                     if loss is not None:
                         # writer.add_scalar('train/Loss', loss, iteration)
                         loss_list.append(loss)
@@ -204,14 +218,14 @@ def train(env, agent):
                     if len(env.waiting) > 0:
                         job_prime = env.waiting.pop(0)
 
-                        # 延迟更新agent
-                        if job_cur_id >= env.job_num:
-                            done = True
-                        else:
-                            done = False
-                        next_state = env.get_state(job_prime, T)
-                        agent.memory.push(state, action, reward, next_state, done)
-                        loss = agent.update()
+                        # # 延迟更新agent
+                        # if state != []:
+                        #     next_state = env.get_state(job_prime, T)
+                        #     agent.memory.push(state, action, reward, next_state, done)
+                        #     loss = agent.update()
+                        #     if loss is not None:
+                        #         # writer.add_scalar('train/Loss', loss, iteration)
+                        #         loss_list.append(loss)
 
                         state = env.get_state(job_prime, T)
 
@@ -246,17 +260,17 @@ def train(env, agent):
                         for spent in range(2, 2 + hp.machine_num):
                             next_state[spent] = -1
                         """
-                        # next_state[0] = 3
-                        # for spent in range(1, 1 + hp.machine_num):
-                        #     next_state[spent] = 0
+                        next_state[0] = 3
+                        for spent in range(1, 1 + hp.machine_num):
+                            next_state[spent] = 0
 
-                        # if job_cur_id >= env.job_num:
-                        #     done = True
-                        # else:
-                        #     done = False
-                        # agent.memory.push(state, action, reward, next_state, done)
-                        # loss = agent.update()
+                        if job_cur_id >= env.job_num:
+                            done = True
+                        else:
+                            done = False
 
+                        agent.memory.push(state, action, reward, next_state, done)
+                        loss = agent.update()
                         if loss is not None:
                             # writer.add_scalar('train/Loss', loss, iteration)
                             loss_list.append(loss)
@@ -297,13 +311,17 @@ def eval(env, agent):
     for i_ep in range(hp.eval_eps):
         env.re_random_job()
         FIFO(env)
+        # 保存一下FIFO的结果
+        timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        save_job(env, 'FIFO-' + timestamp)
+
         env.reset()
         ep_reward = 0
         reward_list = [0]
 
         # 按照时间循环
         job_cur_id = 0  # 定义当前(current)任务序号，不然需要全表扫描
-        loop = tqdm(enumerate(np.arange(0, 1600, 0.01)), total=160000)
+        loop = tqdm(enumerate(np.arange(0, hp.job_num * 1.5, 0.01)), total=hp.job_num * 150)
         for id, T in loop:
             iteration += 1
             # 提前终止
@@ -399,8 +417,10 @@ def eval(env, agent):
             ma_rewards.append(ma_rewards[-1] * 0.9 + ep_reward * 0.1)
         else:
             ma_rewards.append(ep_reward)
-        # if (i_ep + 1) % 10 == 10:
-        #     print(f"Episode:{i_ep + 1}/{hp.eval_eps}, reward:{ep_reward:.1f}")
+
+        # 保存一下DQN的结果
+        save_job(env, 'DQN-' + timestamp)
+
     print('Complete evaling！')
     return ma_rewards
 
@@ -412,10 +432,10 @@ if __name__ == "__main__":
         env.init()
         if FIFO(env) > 0 and FIFO(env) < 2600:
             break
-    # train
-    train(env, agent)
-    os.makedirs(hp.output_dir, exist_ok=True)
-    agent.save(path=hp.model_path)
+    # # train
+    # train(env, agent)
+    # os.makedirs(hp.output_dir, exist_ok=True)
+    # agent.save(path=hp.model_path)
 
     # eval
     agent = DQN()

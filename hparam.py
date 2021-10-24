@@ -6,7 +6,7 @@ class hparams:
     machine_num = 30
     type_num = 10
     algo = "DQN"  # name of algo
-    train_eps = 50  # max trainng episodes #100
+    train_eps = 100  # max trainng episodes #100
     eval_eps = 10  # number of episodes for evaluating
     gamma = 0.95
     epsilon_start = 0.90  # start epsilon of e-greedy policy
@@ -19,5 +19,6 @@ class hparams:
     hidden_dim = 128  # hidden size of net
     epochs_per_checkpoint = 1
     model_path = './ckpt/'
+    savejob_path = './save_jobs'
 
     ckpt = None  # 用来断点继续训练

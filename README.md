@@ -108,7 +108,11 @@ agent(state)
 * 10.23:
     * 去除 t_balance，添加 t_total_balance
     * 去除 machine_balance
-    * 修改state，测试
+    * 修改 state，测试
+    * 修改 next_state为真正的next_state，训练时间陡增，而且不好，暂时去掉
+* 10.24：
+    * 添加save_job，保存env中的job安排计划
+    * 修改T循环，最大为job_num * 1.5，如1000个job，T循环0-1500
 
 ## Todo:
 * 记忆池容量输出

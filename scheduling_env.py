@@ -12,11 +12,13 @@ class job:
         self.T_deadline = self.T_arrival + uniform(3, 5)  # 截止
         self.type = randint(0, hp.type_num - 1)  # 任务类别
         self.mask = np.ones(hp.action_dim)  # mask
+        self.action = None  # 选择的机器
         self.T_spent = None  # 耗时
         self.T_start = None  # 开始时间
         self.priority = 2  # 优先度
 
     def reset(self):
+        self.action = None
         self.T_spent = None
         self.T_start = None
         self.priority = 2
@@ -208,6 +210,9 @@ class SchedulingEnv:
                 job.T_spent = self.machines[action].spent[job.type]
                 self.machines[action].running = job
                 reward = job.T_deadline - T - job.T_spent
+
+        # 记录action
+        job.action = action
 
         # print(f'reward: {reward}')
         return reward, feasible
