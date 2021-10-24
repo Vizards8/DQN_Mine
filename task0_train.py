@@ -113,9 +113,10 @@ def save_job(env, name):
     dir = os.path.join(hp.savejob_path, name + '.csv')
     job_list = []
     for job in env.jobs:
-        job_list.append([job.T_arrival, job.T_deadline, job.type, job.action, job.T_spent, job.T_start])
+        job_list.append([job.T_arrival, job.T_deadline, job.type, job.action, job.T_spent, job.T_start,
+                         job.T_deadline - job.T_start - job.T_spent])
     job_list = pd.DataFrame(job_list,
-                            columns=(['T_arrival', 'T_deadline', 'type', 'action', 'T_spent', 'T_start']))
+                            columns=(['T_arrival', 'T_deadline', 'type', 'action', 'T_spent', 'T_start', 'Reward']))
     job_list.to_csv(dir)
 
 
