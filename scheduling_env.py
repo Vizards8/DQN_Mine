@@ -8,8 +8,8 @@ import numpy as np
 class job:
     def __init__(self, last_arrival, id):
         self.id = id
-        self.T_arrival = last_arrival + uniform(0, 1)  # 到达时间
-        self.T_deadline = self.T_arrival + uniform(3, 5)  # 截止
+        self.T_arrival = round(last_arrival + uniform(0, 1), 2)  # 到达时间
+        self.T_deadline = round(self.T_arrival + uniform(3, 5), 2)  # 截止
         self.type = randint(0, hp.type_num - 1)  # 任务类别
         self.mask = np.ones(hp.action_dim)  # mask
         self.action = None  # 选择的机器
